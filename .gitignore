@@ -1,0 +1,10 @@
+# Ignorar arquivos de compilação
+*.o
+*.exe
+
+# Ignorar pastas específicas
+__pycache__/
+
+# Ignorar arquivos de configuração do sistema
+.DS_Store
+*.log
