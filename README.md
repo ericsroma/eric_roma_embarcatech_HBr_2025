@@ -20,6 +20,13 @@ Cada projeto tem sua própria pasta, contendo o código-fonte, documentação e 
 | Projeto | Descrição |
 |---------|-----------|
 | [Heart Sound System](./projetos/heart_sound_system/) | Projeto final da Fase 1 do Embarctaech -  Sistema de captura e análise das características do som do coração
+
+
+## 📂 Lista de Tarefas
+
+| Tarefa | Descrição |
+|---------|-----------|
+| [Contador](./tarefas/U1_ex1/) | Contador decrescente com registro de eventos por interrupção
 ---
 
 ## Licença
