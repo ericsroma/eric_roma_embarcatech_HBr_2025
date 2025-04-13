@@ -26,7 +26,8 @@ Cada projeto tem sua própria pasta, contendo o código-fonte, documentação e 
 
 | Tarefa | Descrição |
 |---------|-----------|
-| [Contador](./tarefas/U1_ex1/) | Contador decrescente com registro de eventos por interrupção
+| [Contador Interrupção](./tarefas/U1/contador) | Contador decrescente com registro de eventos por interrupção
+| [Valores Joystick](./tarefas/U1/joystick_val) | Leitura dos sinais analógicos do joystick
 ---
 
 ## Licença
