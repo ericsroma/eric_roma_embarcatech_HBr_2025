@@ -20,7 +20,7 @@
  volatile int countdown = 0;
  volatile int b_press_count = 0;
  
- // Temporizador da contagem regressiva
+ // Estrutura do Temporizador da contagem regressiva
  struct repeating_timer countdown_timer;
  
  // Área de renderização do display
@@ -31,38 +31,45 @@
      .start_page = 0,
      .end_page = ssd1306_n_pages - 1
  };
+
+// Função de debounce
+bool debounce(uint gpio, absolute_time_t *last_press_time, uint32_t debounce_time_us) 
+{
+    absolute_time_t now = get_absolute_time();
+    
+    if (absolute_time_diff_us(*last_press_time, now) > debounce_time_us) 
+    {
+        *last_press_time = now;
+        return true;
+    }
+    
+    return false;
+}
  
- // Callback único para ambos os botões, com debounce separado
- void button_callback(uint gpio, uint32_t events) 
- {
-     static absolute_time_t last_press_time_a = {0};
-     static absolute_time_t last_press_time_b = {0};
-     absolute_time_t now = get_absolute_time();
- 
-     if (gpio == BUTTON_A) 
-     {
-         if (absolute_time_diff_us(last_press_time_a, now) > 200000) //Debounce de 200ms
-         {
-             last_press_time_a = now;
-             button_a_pressed = true;
-         }
-         {
-             last_press_time_a = now;
-             button_a_pressed = true;
-         }
-     }
- 
-     if (gpio == BUTTON_B) 
-     {
-         if (absolute_time_diff_us(last_press_time_b, now) > 200000 && counting_active) //Debounce de 200ms
-         {
-             last_press_time_b = now;
-             b_press_count++;
-             atualizar_display(countdown, b_press_count, &frame_area);
-         }
-     }
- }
- 
+ // ISR para ambos os botões:
+void button_callback(uint gpio, uint32_t events) 
+{
+    static absolute_time_t last_press_time_a = {0};
+    static absolute_time_t last_press_time_b = {0};
+    
+    if (gpio == BUTTON_A) 
+    {
+        if (debounce(gpio, &last_press_time_a, 200000)) // Debounce de 200ms
+        { 
+            button_a_pressed = true;
+        }
+    }
+    
+    if (gpio == BUTTON_B) 
+    {
+        if (debounce(gpio, &last_press_time_b, 200000) && counting_active) // Debounce de 200ms
+        { 
+            b_press_count++;
+            atualizar_display(countdown, b_press_count, &frame_area);
+        }
+    }
+}
+
  // Callback do temporizador da contagem regressiva
  bool countdown_timer_callback(struct repeating_timer *t) 
  {
