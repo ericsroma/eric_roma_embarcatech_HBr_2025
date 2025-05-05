@@ -2,10 +2,10 @@
 #define BOLA_H
 
 typedef struct {
-    float x;
-    float y;
-    float vx;
-    int estado;  // 0 = em queda, 1 = chegou no fundo
+    float x; //posição horizontal da bolinha
+    float y; //posição vertical da bolinha
+    float vx; //velocidade horizontal da bolinha
+    int estado;  // 0 = em queda, 1 = chegou na canaleta
 } Bola;
 
 int escolha_aleatoria(void);
