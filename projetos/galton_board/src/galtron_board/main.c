@@ -6,7 +6,7 @@
 #include <time.h>
 #include <string.h>
 
-#define NUM_CANALETAS 6
+#define NUM_CANALETAS 8
 #define TICK_MS 20
 #define LARGURA_DISPLAY 128
 #define ALTURA_DISPLAY 64

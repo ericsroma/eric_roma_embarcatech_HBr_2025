@@ -35,6 +35,11 @@ int escolha_aleatoria(void) // Retorna -1 ou 1 aleatoriamente (simula desvio à 
     return (rand() % 2 == 0) ? -1 : 1;
 }
 
+int escolha_aleatoria_com_probabilidade(int prob_esquerda)
+{
+    return (rand() % 100 < prob_esquerda) ? -1 : 1;
+}
+
 
 void inicializar_bola(Bola *bola)
 {
@@ -61,7 +66,7 @@ void atualizar_bola(Bola *bola)
         //Atribui uma nova velocidade horizontal com base na direção sorteada
         bola->vx = direcao * VELOCIDADE_MAX;
     } 
-    else 
+    else //Se a bola já desviou de um pino
     {
         //Aplica atrito horizontal para desacelerar a bola
         if (bola->vx > 0) // Se a velocidade horizontal for positiva (bola indo para a direita)

@@ -29,7 +29,7 @@ void tabuleiro(uint8_t *buffer) //Desenha o tabuleiro do Galton Board
 
     for (int linha = 0; linha <= niveis; linha++)
     {
-        int num_pinos = linha + 1; //pinos formando triangulo 
+        int num_pinos = linha + 1; //pinos formando triangulo (linha 0 tem 1 pino, linha 1 tem 2 pinos, etc) 
         int total_largura = (num_pinos - 1) * espaco_x; // (num_pinos - 1) = número de espaços entre os pinos, espaco_x = tamanho de cada espaço
         int offset_x =  (60 - total_largura) / 2; // O tabuleiro será centralizado na área disponível de 60 pixels
 
@@ -57,52 +57,55 @@ void desenhar_bola(uint8_t *buffer, Bola *bola)
 
 void desenhar_histograma(uint8_t *buffer, int *histograma)
 {
-    const int base_y = 63; // Linha de base para o histograma
-    const int altura_max = 50; // Altura máxima das barras
+    const int base_y = 63; // Linha de base para o histograma a partir do topo do display
+    const int altura_max = ALTURA_DISPLAY; // Altura máxima das barras
     const int inicio_x = 75; // Posição inicial no eixo X
-    const int largura_barra_total = LARGURA_DISPLAY - inicio_x; // Largura total disponível para as barras
-    const int espaco_barra = largura_barra_total / 6; // 6 canaletas, espaço fixo entre as barras
+    const int largura_barra_total = LARGURA_DISPLAY - inicio_x;
+    const int espaco_barra = largura_barra_total / 8;
 
-    // Encontrar o valor máximo de bolas no histograma
+    // Encontrar o valor máximo atual
     int max = 1;
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < 8; i++)
     {
         if (histograma[i] > max)
             max = histograma[i];
     }
 
-    // Se o valor máximo do histograma exceder o limite de altura do display, normaliza todo o histograma
-    if (max > altura_max)
+    // Verifica se é necessário normalizar
+    bool precisa_normalizar = (max > altura_max);
+
+    for (int i = 0; i < 8; i++)
     {
-        for (int i = 0; i < 6; i++)
+        // Altura real ou normalizada
+        int altura;
+        int x = inicio_x + i * espaco_barra;
+        
+        if (precisa_normalizar)
         {
-            histograma[i] = (histograma[i] * altura_max) / max; // Normaliza todo o histograma
+            altura = (histograma[i] * altura_max) / max;
         }
-    }
+        else
+        {
+            altura = histograma[i];
+        }
 
-    for (int i = 0; i < 6; i++) // Para cada uma das 6 canaletas
-    {
-        // A altura da barra será proporcional ao número de bolas
-        int altura = histograma[i]; // Sem a normalização, a altura será igual ao número de bolas
-        int x = inicio_x + i * espaco_barra; // Posição X da barra
-
-        // Desenhando a barra (crescendo para baixo)
+        // Desenhar barra
         for (int y = 0; y < altura; y++)
         {
-            for (int dx = 0; dx < espaco_barra - 1; dx++) // Desenhando cada pixel horizontal
+            for (int dx = 0; dx < espaco_barra - 1; dx++)
             {
-                ssd1306_set_pixel(buffer, x + dx, base_y - y, true); // Barra crescendo para baixo
+                ssd1306_set_pixel(buffer, x + dx, base_y - y, true);
             }
         }
 
-        // Caso o histograma tenha valor 0, desenhar uma barra com altura 0
+        // Se for zero, marcar um ponto
         if (histograma[i] == 0)
         {
-            // Desenhar um pequeno ponto ou uma linha horizontal para indicar a ausência de bolas
             ssd1306_set_pixel(buffer, x + espaco_barra / 2, base_y, true);
         }
     }
 }
+
 
 void mostrar_contador_bolas(uint8_t *buffer, int total)
 {
