@@ -10,5 +10,6 @@ void tabuleiro(uint8_t *buffer);
 void desenhar_bola(uint8_t *buffer, Bola *bola);
 void desenhar_histograma(uint8_t *buffer, int *histograma);
 void mostrar_contador_bolas(uint8_t *buffer, int total);
+void mostrar_analise_histograma(uint8_t *buffer, int *histograma);
 
 #endif

@@ -9,6 +9,8 @@
 #define VELOCIDADE_MAX 1.0f //velocidade máxima lateral da bola
 #define ATRITO 0.1f //desaceleração gradual da bola após um desvio
 
+extern volatile int modo_desbalanceado;
+
 int eh_linha_pinos(int y) 
 {
     const int niveis = 6; // Número de níveis do tabuleiro (0 a 6)
@@ -30,14 +32,12 @@ int eh_linha_pinos(int y)
     return 0; // Caso contrário, não é linha de pinos
 }
 
-int escolha_aleatoria(void) // Retorna -1 ou 1 aleatoriamente (simula desvio à esquerda ou direita ao encontrar um pino)
+int escolha_direcionada(void)
 {
-    return (rand() % 2 == 0) ? -1 : 1;
-}
-
-int escolha_aleatoria_com_probabilidade(int prob_esquerda)
-{
-    return (rand() % 100 < prob_esquerda) ? -1 : 1;
+    if (modo_desbalanceado)
+        return (rand() % 10 < 8) ? 1 : -1; // 80% direita, 20% esquerda
+    else
+        return (rand() % 2 == 0) ? -1 : 1; // 50/50
 }
 
 
@@ -61,7 +61,7 @@ void atualizar_bola(Bola *bola)
     if (eh_linha_pinos((int)bola->y)) 
     {
         //Se estiver, a bola cai em uma direção aleatória (esquerda ou direita)
-        int direcao = escolha_aleatoria();
+        int direcao = escolha_direcionada();
         
         //Atribui uma nova velocidade horizontal com base na direção sorteada
         bola->vx = direcao * VELOCIDADE_MAX;

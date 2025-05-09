@@ -10,6 +10,9 @@
 #define LARGURA_DISPLAY 128
 #define ALTURA_DISPLAY 64
 
+extern volatile int modo_desbalanceado;
+
+
 void setup_i2c(void)
 {
     i2c_init(i2c1, ssd1306_i2c_clock * 1000);
@@ -44,72 +47,118 @@ void tabuleiro(uint8_t *buffer) //Desenha o tabuleiro do Galton Board
     }
 }
 
+// Desenha a bola na posição atual no buffer do display, se ela estiver dentro dos limites visíveis
 void desenhar_bola(uint8_t *buffer, Bola *bola)
 {
+    // Converte as coordenadas de ponto flutuante da bola para inteiros (posição no display)
     int x = (int)bola->x;
     int y = (int)bola->y;
 
-    if (x >= 0 && x < 64 && y >= 0 && y < ALTURA_DISPLAY) // Limitado à metade esquerda 
+    // Verifica se a posição da bola está dentro dos limites válidos do display
+    // Neste caso, o eixo X está limitado à metade esquerda do display (0 a 63)
+    // E o eixo Y está limitado à altura total do display
+    if (x >= 0 && x < 64 && y >= 0 && y < ALTURA_DISPLAY)
     {
+        // Ativa o pixel correspondente no buffer do display OLED
         ssd1306_set_pixel(buffer, x, y, true);
     }
 }
 
+// Função para desenhar um histograma no buffer do display
+// buffer: ponteiro para o buffer de pixels do display OLED (SSD1306)
+// histograma: vetor de 8 inteiros representando os valores das colunas do histograma
 void desenhar_histograma(uint8_t *buffer, int *histograma)
 {
-    const int base_y = 63; // Linha de base para o histograma a partir do topo do display
-    const int altura_max = ALTURA_DISPLAY; // Altura máxima das barras
-    const int inicio_x = 75; // Posição inicial no eixo X
-    const int largura_barra_total = LARGURA_DISPLAY - inicio_x;
-    const int espaco_barra = largura_barra_total / 8;
+    const int base_y = 63; // Define a linha de base do histograma (parte inferior do display OLED 128x64)
+    const int altura_max = ALTURA_DISPLAY; // Altura máxima das barras (valor fixo correspondente à altura do display)
+    const int inicio_x = 75; // Posição inicial no eixo X onde o histograma começa
+    const int largura_barra_total = LARGURA_DISPLAY - inicio_x; // Espaço horizontal disponível para o histograma
+    const int espaco_barra = largura_barra_total / 8; // Espaço horizontal reservado para cada barra (8 barras no total)
 
-    // Encontrar o valor máximo atual
-    int max = 1;
+    // Encontrar o maior valor atual no histograma
+    int max = 1; // Começa com 1 para evitar divisão por zero
     for (int i = 0; i < 8; i++)
     {
         if (histograma[i] > max)
-            max = histograma[i];
+            max = histograma[i]; // Atualiza o valor máximo, se encontrar um maior
     }
 
-    // Verifica se é necessário normalizar
+    // Verifica se os valores precisam ser normalizados (i.e., redimensionados proporcionalmente)
     bool precisa_normalizar = (max > altura_max);
 
+    // Loop para desenhar cada uma das 8 barras do histograma
     for (int i = 0; i < 8; i++)
     {
-        // Altura real ou normalizada
         int altura;
-        int x = inicio_x + i * espaco_barra;
-        
+        int x = inicio_x + i * espaco_barra; // Calcula a posição X da barra atual
+
+        // Normaliza a altura se o valor máximo for maior que a altura do display
         if (precisa_normalizar)
         {
-            altura = (histograma[i] * altura_max) / max;
+            altura = (histograma[i] * altura_max) / max; // Ajusta proporcionalmente
         }
         else
         {
-            altura = histograma[i];
+            altura = histograma[i]; // Usa o valor diretamente se não for necessário normalizar
         }
 
-        // Desenhar barra
+        // Desenha a barra preenchendo pixels de baixo para cima
         for (int y = 0; y < altura; y++)
         {
-            for (int dx = 0; dx < espaco_barra - 1; dx++)
+            for (int dx = 0; dx < espaco_barra - 1; dx++) // Desenha a largura da barra (menos 1 pixel para espaçamento)
             {
-                ssd1306_set_pixel(buffer, x + dx, base_y - y, true);
+                ssd1306_set_pixel(buffer, x + dx, base_y - y, true); // Define o pixel no buffer do display
             }
         }
 
-        // Se for zero, marcar um ponto
+        // Se o valor do histograma for zero, desenha um ponto na base para marcar presença
         if (histograma[i] == 0)
         {
-            ssd1306_set_pixel(buffer, x + espaco_barra / 2, base_y, true);
+            ssd1306_set_pixel(buffer, x + espaco_barra / 2, base_y, true); // Ponto centralizado na base da barra
         }
     }
 }
 
 
+
+// Exibe no display o número total de bolas e o modo atual (Balanceado ou Desbalanceado)
 void mostrar_contador_bolas(uint8_t *buffer, int total)
 {
-    char texto[20];
+    char texto[20]; // Buffer de texto para formatar a string
+
+    // Escreve no buffer de texto a quantidade total de bolas
     snprintf(texto, sizeof(texto), "Bolas: %d", total);
+
+    // Exibe a string no canto superior esquerdo do display (posição x = 0, y = 0)
     ssd1306_draw_string(buffer, 0, 0, texto);
+
+    // Verifica o modo atual e exibe a letra correspondente no canto superior direito
+    if (modo_desbalanceado) 
+    {
+        ssd1306_draw_char(buffer, 120, 0, 'D'); // D para "Desbalanceado"
+    }
+    else 
+    {
+        ssd1306_draw_char(buffer, 120, 0, 'B'); // B para "Balanceado"
+    }
+}
+
+// Exibe os valores de cada barra do histograma no display (modo debug/diagnóstico)
+void mostrar_analise_histograma(uint8_t *buffer, int *histograma)
+{
+    char texto[20]; // Buffer de texto para cada linha de saída
+    int y = 0;       // Posição vertical inicial (topo do display)
+
+    // Loop para exibir o valor de cada uma das 8 barras do histograma
+    for (int i = 0; i < 8; i++) 
+    {
+        // Formata o texto com o índice da barra e seu valor
+        snprintf(texto, sizeof(texto), "Barra %d: %d", i, histograma[i]);
+
+        // Escreve a string na posição atual do display
+        ssd1306_draw_string(buffer, 0, y, texto);
+
+        // Move para a próxima linha (supondo altura de 8 pixels por linha)
+        y += 8;
+    }
 }
