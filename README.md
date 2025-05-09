@@ -19,6 +19,7 @@ Cada projeto tem sua própria pasta, contendo o código-fonte, documentação e 
 
 | Projeto | Descrição |
 |---------|-----------|
+| [Galton Board](/.projetos/galton_board/src/galtron_board/) | Projeto 1 -  Galton Board Digital com BitDogLab         
 | [Heart Sound System](./projetos/heart_sound_system/) | Projeto final da Fase 1 do Embarctaech -  Sistema de captura e análise das características do som do coração
 
 
