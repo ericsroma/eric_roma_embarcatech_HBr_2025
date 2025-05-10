@@ -28,7 +28,7 @@ A Galton Board é uma máquina que simula a distribuição normal, com bolas cai
 - Botão A para alternar entre o modo normal e o desbalanceado (80% para direita).
 - Botão B para pausar ou retomar a simulação.
 
-Funcionalidade do Sistema
+## Funcionalidade do Sistema
 ### 1. Inicialização do Sistema
 - O display OLED exibe a simulação da Galton Board com o histograma das canaletas e o contador total de bolas.
 
