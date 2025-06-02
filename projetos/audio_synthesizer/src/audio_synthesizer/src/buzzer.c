@@ -18,17 +18,20 @@ void pwm_init_buzzer(uint pin, uint32_t freq_hz)
     pwm_set_gpio_level(pin, 0);
 }
 
-void play_buffer_on_buzzer(uint pin, uint16_t *buffer, size_t n_samples, uint32_t sample_rate) 
+void play_buffer_on_two_buzzers(uint pin1, uint pin2, uint16_t *buffer, size_t n_samples, uint32_t sample_rate)
 {
-    uint slice_num = pwm_gpio_to_slice_num(pin);
     uint32_t clock = clock_get_hz(clk_sys);
     uint32_t top = clock / sample_rate - 1;
+    float gain = 1.7f; 
 
     for (size_t i = 0; i < n_samples; ++i) {
-        uint16_t value = buffer[i];
-        uint32_t level = (value * top) / 4095;
-        pwm_set_gpio_level(pin, level);
+        uint32_t amplified = (uint32_t)(buffer[i] * gain);
+        if (amplified > 4095) amplified = 4095;
+        uint32_t level = (amplified * top) / 4095;
+        pwm_set_gpio_level(pin1, level);
+        pwm_set_gpio_level(pin2, level);
         sleep_us(1000000 / sample_rate);
     }
-    pwm_set_gpio_level(pin, 0);
+    pwm_set_gpio_level(pin1, 0);
+    pwm_set_gpio_level(pin2, 0);
 }
